@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: player-mongo
+  name: player-mongo
+spec:
+  type: NodePort # though it's not good design but we are inserting data with client hence it's needed.
+  ports:
+    - port: 27017
+      targetPort: 27017
+  selector:
+    name: player-mongo # This should match with pod label

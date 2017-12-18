@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+          integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles/styles.css">
+    <title>Spot The Player</title>
+</head>
+<body>
+<div class="jumbotron">
+    <h1 class="display-5">Spot The Player</h1>
+    <p class="lead">Welcome to Spot The Player. Please enter the player's name in the textbox and hit View profile to
+        see the player's profile </p>
+    <div class="form-group">
+        <label for="playerName">Player's Name</label>
+        <input class="form-control input" id="playerName" type="text">
+        <label for="noRecord" id="noRecordLabel"></label>
+    </div>
+    <p class="lead">
+        <a class="btn btn-primary btn" href="#" role="button" onclick="displayPlayerDetailsInTable()">View Profile</a>
+        <a class="btn btn-secondary btn" href="#" role="button" onclick="clearTextBox()">Clear</a>
+    </p>
+</div>
+
+<div class="table-responsive">
+    <table class="table" id="playerDetails">
+        <thead>
+        </thead>
+
+    </table>
+</div>
+<script type="text/javascript">
+    var myObj = {};
+
+    // Local -> "http://localhost:3000/players/name/Harmon
+    // K8 -> http://192.168.99.100:32489/players/name/Harmon
+
+    var url = "http://192.168.99.100:31732/players/name/";
+    
+    function addRowToTable(property, value) {
+        var table = document.getElementById("playerDetails")
+        var row = table.insertRow();
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+        cell1.innerHTML = property.toUpperCase().replace(/_/gi," ");
+        cell2.innerHTML = value;
+    }
+
+    function clearTable() {
+        var table = document.getElementById("playerDetails");
+        var tableRows = table.getElementsByTagName('tr');
+        var rowCount = tableRows.length;
+        console.log("row count is " + rowCount);
+        for (i = rowCount - 1; i >= 0; i--) {
+            table.deleteRow(i);
+        }
+    }
+
+    function displayPlayerDetailsInTable(event) {
+        var inputPlayerName = document.getElementById("playerName").value;
+
+        if (inputPlayerName == ""){
+            console.log("player name is empty");
+            document.getElementById("noRecordLabel").innerHTML = "<html><font color='red'>Enter player name...</font></html>";
+            return;
+        } else{
+            clearErrorMessage();
+        }
+
+        updateMyObjWithPlayerDetails(inputPlayerName)
+    }
+
+    function displayNoRecordMessage(event) {
+        document.getElementById("noRecordLabel").innerHTML = "<html><font color='red'>No record found!</font></html>";
+    }
+
+    function clearErrorMessage(event) {
+        document.getElementById("noRecordLabel").innerHTML = "";
+    }
+
+    function clearTextBox(event) {
+        document.getElementById("playerName").value = "";
+        clearErrorMessage();
+        clearTable();
+    }
+
+    function updateMyObjWithPlayerDetails(inputPlayerName){
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                console.log(this.responseText);
+                myObj = JSON.parse(this.responseText);
+                var data = myObj[0];
+                console.log(data);
+                if (myObj[0] == undefined){
+                    clearTable();
+                    displayNoRecordMessage();
+                    return;
+                } else{
+                    clearErrorMessage();
+                }
+                var keys = Object.keys(data);
+                var values = Object.values(data);
+                console.log("clearing old table")
+                clearTable();
+
+                for (i = 0; i < keys.length; i++) {
+
+                    console.log("adding row")
+                    if(!keys[i].startsWith("_")){addRowToTable(keys[i], values[i]);}
+
+                }
+            }
+        };
+        
+        xmlhttp.open("GET", url+inputPlayerName, true);
+
+        xmlhttp.send();
+    }
+
+</script>
+</body>
+</html>
